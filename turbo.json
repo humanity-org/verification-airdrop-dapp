@@ -1,0 +1,42 @@
+{
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalEnv": ["NODE_ENV", "CI"],
+  "globalDependencies": [".env", "tsconfig.json"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**", ".next/**", "!.next/cache/**"],
+      "cache": true,
+      "outputLogs": "new-only"
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true,
+      "interruptible": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "cache": true,
+      "outputLogs": "new-only"
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "cache": true,
+      "outputLogs": "new-only"
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "cache": true,
+      "outputLogs": "new-only"
+    },
+    "format": {
+      "cache": true,
+      "outputLogs": "new-only"
+    },
+    "clean": {
+      "cache": false
+    }
+  }
+}

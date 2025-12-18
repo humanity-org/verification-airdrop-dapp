@@ -1,0 +1,196 @@
+/* Tailwind CSS v4 导入 */
+@import "tailwindcss";
+
+/* 自定义主题配置 */
+@theme {
+  /* 颜色系统 - 12阶色阶 */
+  --color-primary-1: oklch(0.985 0.01 145);
+  --color-primary-2: oklch(0.97 0.025 145);
+  --color-primary-3: oklch(0.94 0.05 145);
+  --color-primary-4: oklch(0.90 0.08 145);
+  --color-primary-5: oklch(0.85 0.12 145);
+  --color-primary-6: oklch(0.75 0.14 145);
+  --color-primary-7: oklch(0.67 0.16 145);
+  --color-primary-8: oklch(0.60 0.18 145);
+  --color-primary-9: oklch(0.55 0.20 145);
+  --color-primary-10: oklch(0.50 0.20 145);
+  --color-primary-11: oklch(0.42 0.18 145);
+  --color-primary-12: oklch(0.25 0.12 145);
+
+  /* Success (Green) */
+  --color-success-1: oklch(0.985 0.01 145);
+  --color-success-9: oklch(0.55 0.20 145);
+
+  /* Gray Scale */
+  --color-gray-1: oklch(0.15 0.015 250);
+  --color-gray-2: oklch(0.18 0.015 250);
+  --color-gray-3: oklch(0.22 0.018 250);
+  --color-gray-4: oklch(0.26 0.02 250);
+  --color-gray-5: oklch(0.30 0.022 250);
+  --color-gray-6: oklch(0.40 0.025 250);
+  --color-gray-7: oklch(0.50 0.027 250);
+  --color-gray-8: oklch(0.58 0.027 250);
+  --color-gray-9: oklch(0.60 0.025 250);
+  --color-gray-10: oklch(0.65 0.023 250);
+  --color-gray-11: oklch(0.80 0.015 250);
+  --color-gray-12: oklch(0.93 0.008 250);
+
+  /* 语义化颜色 */
+  --color-green-400: #22c55e;
+  --color-green-500: #16a34a;
+
+  /* 间距 */
+  --spacing-18: 4.5rem;
+
+  /* 字体大小 */
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-4xl: 2.25rem;
+  --text-4xl--line-height: 2.5rem;
+  --text-5xl: 3rem;
+  --text-5xl--line-height: 1;
+
+  /* 字体家族 */
+  --font-sans: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+
+  /* 圆角 */
+  --radius-2: 2px;
+  --radius-4: 4px;
+  --radius-8: 8px;
+  --radius-12: 12px;
+  --radius-full: 9999px;
+}
+
+/* 自定义动画 */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes shimmer {
+  0%, 100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 0%;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 自定义工具类 */
+@utility tab-highlight {
+  @apply rounded-lg bg-primary-5/10 transition-colors;
+}
+
+/* 全局样式 */
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #0a0a0a;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #0a0a0a, #050505);
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 自定义工具类 */
+.glass {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.scanline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    transparent 50%,
+    rgba(255, 255, 255, 0.01) 50%
+  );
+  background-size: 100% 4px;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+.shimmer-btn {
+  background: linear-gradient(
+    90deg,
+    #22c55e 0%,
+    #16a34a 50%,
+    #22c55e 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* 动画工具类 */
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.reveal {
+  animation: reveal 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.delay-1 {
+  animation-delay: 0.1s;
+}
+
+.delay-2 {
+  animation-delay: 0.2s;
+}
+
+.delay-3 {
+  animation-delay: 0.3s;
+}
