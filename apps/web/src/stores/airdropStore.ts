@@ -1,359 +1,254 @@
 import { create } from 'zustand';
-import type { Address, PublicClient, WalletClient } from 'viem';
-import { AirdropStatus, type UserState, type ToastNotification } from '../types/contracts';
-import { createAirdropContract } from '../contracts/factory';
+import { AirdropStatus, VerificationStatus, type UserState, type LoadingState } from '../types/contracts';
+import { useWalletStore } from './walletStore';
+import { useToastStore } from './toastStore';
+import { ErrorCode } from '../types/errors';
+import { createAppError, handleError } from '../utils/errorHandler';
+import { createAirdropService } from '../services/AirdropService';
 
-interface AirdropStore extends UserState {
-  // Clients
-  publicClient: PublicClient | null;
-  walletClient: WalletClient | null;
-
-  // Independent loading states for each operation
-  isCheckingClaim: boolean;
-  isCheckingHuman: boolean;
-  isVerifyingHuman: boolean;
-  isClaiming: boolean;
+/**
+ * Airdrop Store - Airdrop business logic management
+ * 
+ * Responsibilities:
+ * - Manage airdrop-related state (eligibility, claimed status, allocation amount, etc.)
+ * - Handle airdrop verification and claim process
+ * - Manage loading state and error messages
+ * 
+ * Dependencies:
+ * - walletStore: Get wallet address and Web3 client
+ * - toastStore: Display operation result notifications
+ */
+interface AirdropStore extends Omit<UserState, 'address'> {
+  // Unified loading state management - use state machine instead of multiple boolean flags
+  loadingState: LoadingState;
 
   // Status tracking
   claimStatusChecked: boolean;
   humanStatusChecked: boolean;
 
-  // Toast notifications
-  toasts: ToastNotification[];
-
   // Actions
-  setClients: (publicClient: PublicClient | null, walletClient: WalletClient | null) => void;
-  connectWallet: (address: Address) => Promise<void>;
-  disconnectWallet: () => void;
   checkClaimStatus: (showToast?: boolean) => Promise<void>;
   checkHumanStatus: (showToast?: boolean) => Promise<void>;
-  verifyHuman: () => Promise<void>;
   verifyAll: () => Promise<void>;
   claimAirdrop: () => Promise<void>;
-  addToast: (toast: Omit<ToastNotification, 'id'>) => void;
-  removeToast: (id: string) => void;
   resetError: () => void;
+  resetAll: () => void;
 }
 
 export const useAirdropStore = create<AirdropStore>((set, get) => ({
   // Initial state
-  address: null,
   status: AirdropStatus.DISCONNECTED,
   isClaimed: false,
-  isHuman: false,
+  verificationStatus: VerificationStatus.None,
   allocation: '1',
   error: null,
   txHash: null,
-  publicClient: null,
-  walletClient: null,
 
-  // Independent loading states
-  isCheckingClaim: false,
-  isCheckingHuman: false,
-  isVerifyingHuman: false,
-  isClaiming: false,
+  // Unified loading state
+  loadingState: { type: 'idle' },
 
   claimStatusChecked: false,
   humanStatusChecked: false,
-  toasts: [],
 
-  // Set blockchain clients
-  setClients: (publicClient, walletClient) => {
-    set({ publicClient, walletClient });
-  },
-
-  // Connect wallet and start verification flow
-  connectWallet: async (address: Address) => {
-    set({
-      address,
-      status: AirdropStatus.CONNECTED,
-      error: null,
-      isCheckingClaim: false,
-      isCheckingHuman: false,
-      isVerifyingHuman: false,
-      isClaiming: false,
-      claimStatusChecked: false,
-      humanStatusChecked: false,
-    });
-
-    // Automatically verify all statuses after connecting (silent mode - no toast)
-    await Promise.all([
-      get().checkClaimStatus(false),
-      get().checkHumanStatus(false),
-    ]);
-  },
-
-  // Disconnect wallet and reset state
-  disconnectWallet: () => {
-    set({
-      address: null,
-      status: AirdropStatus.DISCONNECTED,
-      isClaimed: true,
-      isHuman: false,
-      allocation: '0',
-      error: null,
-      txHash: null,
-      isCheckingClaim: false,
-      isCheckingHuman: false,
-      isVerifyingHuman: false,
-      isClaiming: false,
-      claimStatusChecked: false,
-      humanStatusChecked: false,
-    });
-  },
-
-  // Check if user has already claimed
+  /**
+   * Check if the user has already claimed the airdrop
+   *
+   * @param showToast - Whether to show toast notification (default true)
+   */
   checkClaimStatus: async (showToast = true) => {
-    const { address, publicClient, walletClient } = get();
+    const { address, publicClient, walletClient } = useWalletStore.getState();
 
     if (!address) {
-      set({ error: 'No wallet connected' });
+      const appError = createAppError(ErrorCode.WALLET_NOT_CONNECTED);
+      handleError(appError, 'Check Claim Status');
+      set({ error: appError.userMessage });
       return;
     }
 
-    try {
-      set({ isCheckingClaim: true, error: null });
+    set({ loadingState: { type: 'checking_claim' }, error: null });
 
-      const airdropContract = createAirdropContract(publicClient, walletClient);
-      const isClaimed = await airdropContract.isClaim(address);
+    const service = createAirdropService(address, publicClient, walletClient);
+    const result = await service.checkClaimStatus();
 
-      if (isClaimed??false) {
+    if (result.success) {
+      const { isClaimed } = result.data;
+
+      if (isClaimed) {
         set({
           status: AirdropStatus.ALREADY_CLAIMED,
           isClaimed,
-          isCheckingClaim: false,
+          loadingState: { type: 'idle' },
           claimStatusChecked: true,
         });
         if (showToast) {
-          get().addToast({
+          useToastStore.getState().addToast({
             type: 'info',
             message: 'You have already claimed this airdrop',
           });
         }
       } else {
         set({
+          status: AirdropStatus.READY_TO_CLAIM,
           isClaimed: false,
-          isCheckingClaim: false,
+          loadingState: { type: 'idle' },
           claimStatusChecked: true,
         });
       }
-    } catch (error) {
-      console.error('Error checking claim status:', error);
+    } else {
+      handleError(result.error, 'Check Claim Status');
       set({
         status: AirdropStatus.ERROR,
-        error: error instanceof Error ? error.message : 'Failed to check claim status',
-        isCheckingClaim: false,
+        error: result.error.userMessage,
+        loadingState: { type: 'idle' },
         claimStatusChecked: true,
       });
-      if (showToast) {
-        get().addToast({
-          type: 'error',
-          message: error instanceof Error ? error.message : 'Failed to check claim status',
-        });
-      }
     }
   },
 
-  // Check if user passes human verification
+  /**
+   * Check if the user has passed human verification
+   *
+   * @param showToast - Whether to show toast notification (default true)
+   */
   checkHumanStatus: async (showToast = true) => {
-    const { address, publicClient, walletClient } = get();
+    const { address, publicClient, walletClient } = useWalletStore.getState();
 
     if (!address) {
-      set({ error: 'No wallet connected' });
+      const appError = createAppError(ErrorCode.WALLET_NOT_CONNECTED);
+      handleError(appError, 'Check Human Status');
+      set({ error: appError.userMessage });
       return;
     }
 
-    try {
-      set({ isCheckingHuman: true, error: null });
+    set({ loadingState: { type: 'checking_human' }, error: null });
 
-      const airdropContract = createAirdropContract(publicClient, walletClient);
-      const isHuman = await airdropContract.checkHuman(address);
+    const service = createAirdropService(address, publicClient, walletClient);
+    const result = await service.checkHumanStatus();
 
-      if (isHuman??false) {
-        set({
-          status: AirdropStatus.READY_TO_CLAIM,
-          isHuman: true,
-          isCheckingHuman: false,
-          humanStatusChecked: true,
-        });
-        if (showToast) {
-          get().addToast({
-            type: 'success',
-            message: 'Human verification passed! You are eligible for the airdrop.',
-          });
-        }
-      } else {
-        set({
-          status: AirdropStatus.NOT_HUMAN,
-          isHuman: false,
-          isCheckingHuman: false,
-          humanStatusChecked: true,
-        });
-        if (showToast) {
-          get().addToast({
-            type: 'error',
-            message: 'Human verification failed. You are not eligible for this airdrop.',
-          });
-        }
-      }
-    } catch (error) {
-      console.error('Error checking human verification:', error);
-      set({
-        status: AirdropStatus.ERROR,
-        error: error instanceof Error ? error.message : 'Failed to check human verification',
-        isCheckingHuman: false,
-        humanStatusChecked: true,
-      });
-      if (showToast) {
-        get().addToast({
-          type: 'error',
-          message: error instanceof Error ? error.message : 'Failed to check human verification',
-        });
-      }
-    }
-  },
+    if (result.success) {
+      const { verificationStatus } = result.data;
 
-  // Execute human verification transaction
-  verifyHuman: async () => {
-    const { address, publicClient, walletClient } = get();
-
-    if (!address) {
-      set({ error: 'No wallet connected' });
-      return;
-    }
-
-    try {
-      set({ isVerifyingHuman: true, error: null });
-
-      const airdropContract = createAirdropContract(publicClient, walletClient);
-      const txHash = await airdropContract.verifyHuman();
-
+      // Save the complete verification status, different statuses have different meanings:
+      // None: Not started verification
+      // Pending: Verifying
+      // Failed: Verification failed
+      // Success: Verification successful
       set({
         status: AirdropStatus.READY_TO_CLAIM,
-        isHuman: true,
-        isVerifyingHuman: false,
-        txHash,
+        verificationStatus,
+        loadingState: { type: 'idle' },
+        humanStatusChecked: true,
       });
 
-      get().addToast({
-        type: 'success',
-        message: 'Human verification successful! You are now eligible for the airdrop.',
-      });
-    } catch (error) {
-      console.error('Error verifying human:', error);
+      // Only show success toast when verification is successful
+      if (verificationStatus === VerificationStatus.Success && showToast) {
+        useToastStore.getState().addToast({
+          type: 'success',
+          message: 'Human verification passed! You are eligible for the airdrop.',
+        });
+      }
+    } else {
+      handleError(result.error, 'Check Human Status');
       set({
         status: AirdropStatus.ERROR,
-        error: error instanceof Error ? error.message : 'Failed to verify human',
-        isVerifyingHuman: false,
-      });
-      get().addToast({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to verify human',
+        error: result.error.userMessage,
+        loadingState: { type: 'idle' },
+        humanStatusChecked: true,
       });
     }
   },
 
-  // Verify both claim status and human verification
+  /**
+   * Verify all statuses (claim status and human verification)
+   */
   verifyAll: async () => {
-    const { address } = get();
+    const { address } = useWalletStore.getState();
 
     if (!address) {
-      set({ error: 'No wallet connected' });
+      const appError = createAppError(ErrorCode.WALLET_NOT_CONNECTED);
+      handleError(appError, 'Verify All');
+      set({ error: appError.userMessage });
       return;
     }
 
-    try {
-      // Run both checks in parallel
-      await Promise.all([
-        get().checkHumanStatus(true),
-      ]);
-    } catch (error) {
-      console.error('Error during verification:', error);
-      set({
-        status: AirdropStatus.ERROR,
-        error: error instanceof Error ? error.message : 'Verification failed',
-      });
-      get().addToast({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Verification failed',
-      });
-    }
+    // Run both checks in parallel
+    await Promise.all([get().checkHumanStatus(true)]);
   },
 
-  // Claim the airdrop
+  /**
+   * Claim the airdrop
+   */
   claimAirdrop: async () => {
-    const { address, publicClient, walletClient, isHuman } = get();
+    const { address, publicClient, walletClient } = useWalletStore.getState();
 
     if (!address) {
-      set({ error: 'No wallet connected' });
+      const appError = createAppError(ErrorCode.WALLET_NOT_CONNECTED);
+      handleError(appError, 'Claim Airdrop');
+      set({ error: appError.userMessage });
       return;
     }
 
-    if (!isHuman) {
-      set({ error: 'Human verification failed' });
-      get().addToast({
-        type: 'error',
-        message: 'Please complete human verification first',
-      });
+    // Check if walletClient is available
+    if (!walletClient) {
+      const appError = createAppError(
+        ErrorCode.WALLET_NOT_CONNECTED,
+        new Error('Wallet is still initializing. Please wait a moment and try again.')
+      );
+      handleError(appError, 'Claim Airdrop');
+      set({ error: 'Wallet is initializing. Please try again in a moment.' });
       return;
     }
 
-    try {
-      set({ isClaiming: true, error: null });
+    set({ loadingState: { type: 'claiming' }, error: null });
 
-      const airdropContract = createAirdropContract(publicClient, walletClient);
-      const txHash = await airdropContract.claim();
+    const service = createAirdropService(address, publicClient, walletClient);
+    const result = await service.claimAirdrop();
 
+    if (result.success) {
       set({
         status: AirdropStatus.CLAIMED,
         isClaimed: true,
-        isClaiming: false,
-        txHash,
+        loadingState: { type: 'idle' },
+        txHash: result.data.txHash,
       });
 
-      get().addToast({
+      useToastStore.getState().addToast({
         type: 'success',
         message: 'Airdrop claimed successfully!',
       });
-    } catch (error) {
-      console.error('Error claiming airdrop:', error);
+    } else {
+      handleError(result.error, 'Claim Airdrop');
       set({
         status: AirdropStatus.ERROR,
-        error: error instanceof Error ? error.message : 'Failed to claim airdrop',
-        isClaiming: false,
-      });
-      get().addToast({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Failed to claim airdrop',
+        error: result.error.userMessage,
+        loadingState: { type: 'idle' },
       });
     }
   },
 
-  // Add toast notification
-  addToast: (toast) => {
-    const id = Math.random().toString(36).substring(2, 9);
-    const newToast: ToastNotification = { id, ...toast };
-
-    set((state) => ({
-      toasts: [...state.toasts, newToast],
-    }));
-
-    // Auto-remove toast after duration
-    const duration = toast.duration || 5000;
-    setTimeout(() => {
-      get().removeToast(id);
-    }, duration);
-  },
-
-  // Remove toast notification
-  removeToast: (id) => {
-    set((state) => ({
-      toasts: state.toasts.filter((t) => t.id !== id),
-    }));
-  },
-
-  // Reset error state
+  /**
+   * Reset error state
+   */
   resetError: () => {
     set({ error: null });
+  },
+
+  /**
+   * Reset all airdrop state
+   * 
+   * Used to clean up state when wallet disconnects
+   */
+  resetAll: () => {
+    set({
+      status: AirdropStatus.DISCONNECTED,
+      isClaimed: false,
+      verificationStatus: VerificationStatus.None,
+      allocation: '0',
+      error: null,
+      txHash: null,
+      loadingState: { type: 'idle' },
+      claimStatusChecked: false,
+      humanStatusChecked: false,
+    });
   },
 }));

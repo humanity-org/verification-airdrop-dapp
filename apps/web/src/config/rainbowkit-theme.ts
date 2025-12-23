@@ -3,65 +3,65 @@ import { darkTheme, type Theme } from '@rainbow-me/rainbowkit';
 /**
  * Custom RainbowKit Theme Configuration
  * 
- * 基于项目主色系 green-500 (oklch(0.55 0.20 145)) 的深色主题设计
+ * Dark theme design based on project primary color green-500 (oklch(0.90 0.25 130) #7cff4a)
  * 
- * 设计理念：
- * - 主色调：使用 green-500 (#16a34a) 作为主要强调色，体现生命力和科技感
- * - 视觉风格：采用毛玻璃效果和大圆角，打造现代化、优雅的视觉体验
- * - 对比度：确保所有文字和交互元素符合 WCAG 可访问性标准
- * - 一致性：与项目整体的深色主题和设计语言保持一致
+ * Design Philosophy:
+ * - Primary Color: Use green-500 (#7cff4a) as main accent color, expressing vitality and tech feel
+ * - Visual Style: Adopt glass morphism effect and large border radius for modern, elegant visual experience
+ * - Contrast: Ensure all text and interactive elements meet WCAG accessibility standards
+ * - Consistency: Maintain consistency with project's overall dark theme and design language
  * 
- * 色彩系统：
- * - Primary: green-500 (#16a34a) - 主要操作按钮、选中状态
- * - Secondary: green-400 (#22c55e) - 渐变效果、活动指示器
- * - Background: rgba(10, 10, 10, 0.95) - 深色半透明背景
- * - Border: rgba(255, 255, 255, 0.08) - 低对比度边框
+ * Color System:
+ * - Primary: green-500 (#7cff4a) - Main action buttons, selected states
+ * - Secondary: green-400 (#7cff4a) - Gradient effects, activity indicators (using same theme color)
+ * - Background: rgba(10, 10, 10, 0.95) - Dark semi-transparent background
+ * - Border: rgba(255, 255, 255, 0.08) - Low contrast borders
  * 
  * @see https://www.rainbowkit.com/docs/theming
  */
 export const customTheme: Theme = {
   ...darkTheme({
-    accentColor: '#16a34a', // green-500: 主强调色
-    accentColorForeground: '#ffffff', // 白色文字，确保 4.5:1 对比度
-    borderRadius: 'large', // 使用 12px 圆角，与项目 radius-12 一致
-    fontStack: 'system', // 使用 Inter 系统字体
-    overlayBlur: 'large', // 强毛玻璃效果，提升视觉层次
+    accentColor: '#7cff4a', // green-500: primary accent color
+    accentColorForeground: '#000000', // Black text for 9:1 contrast ratio on #7cff4a
+    borderRadius: 'large', // Use 12px border radius, consistent with project radius-12
+    fontStack: 'system', // Use Inter system font
+    overlayBlur: 'large', // Strong glass effect to enhance visual hierarchy
   }),
   colors: {
-    // 继承 darkTheme 的默认颜色
+    // Inherit darkTheme's default colors
     ...darkTheme({
-      accentColor: '#16a34a',
-      accentColorForeground: '#ffffff',
+      accentColor: '#7cff4a',
+      accentColorForeground: '#000000',
     }).colors,
     
-    // 自定义颜色覆盖
-    // 操作按钮
+    // Custom color overrides
+    // Action buttons
     actionButtonBorder: 'rgba(255, 255, 255, 0.08)',
     actionButtonBorderMobile: 'rgba(255, 255, 255, 0.08)',
     actionButtonSecondaryBackground: 'rgba(255, 255, 255, 0.03)',
     
-    // 关闭按钮
+    // Close button
     closeButton: 'rgba(255, 255, 255, 0.6)',
     closeButtonBackground: 'rgba(255, 255, 255, 0.08)',
     
-    // 连接按钮
-    connectButtonBackground: '#16a34a',
+    // Connect button
+    connectButtonBackground: '#7cff4a',
     connectButtonBackgroundError: '#ef4444',
-    connectButtonInnerBackground: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)',
-    connectButtonText: '#ffffff',
+    connectButtonInnerBackground: 'linear-gradient(90deg, #7cff4a 0%, #7cff4a 50%, #7cff4a 100%)',
+    connectButtonText: '#000000',
     connectButtonTextError: '#ffffff',
     
-    // 连接指示器
-    connectionIndicator: '#22c55e',
+    // Connection indicator
+    connectionIndicator: '#7cff4a',
     
-    // 通用边框
+    // General borders
     generalBorder: 'rgba(255, 255, 255, 0.08)',
     generalBorderDim: 'rgba(255, 255, 255, 0.04)',
     
-    // 菜单项
+    // Menu items
     menuItemBackground: 'rgba(255, 255, 255, 0.03)',
     
-    // 模态框
+    // Modal
     modalBackdrop: 'rgba(0, 0, 0, 0.8)',
     modalBackground: 'rgba(10, 10, 10, 0.95)',
     modalBorder: 'rgba(255, 255, 255, 0.08)',
@@ -69,99 +69,99 @@ export const customTheme: Theme = {
     modalTextDim: 'rgba(255, 255, 255, 0.4)',
     modalTextSecondary: 'rgba(255, 255, 255, 0.6)',
     
-    // 个人资料
+    // Profile
     profileAction: 'rgba(255, 255, 255, 0.03)',
     profileActionHover: 'rgba(255, 255, 255, 0.06)',
     profileForeground: 'rgba(10, 10, 10, 0.95)',
     
-    // 选中状态
-    selectedOptionBorder: '#16a34a',
+    // Selected state
+    selectedOptionBorder: '#7cff4a',
     
-    // 待机状态
+    // Standby state
     standby: 'rgba(255, 255, 255, 0.3)',
   },
 };
 
 /**
- * 主题预设：可以根据不同场景使用不同的主题变体
+ * Theme presets: Use different theme variants based on different scenarios
  */
 export const themePresets = {
   /**
-   * 标准主题：默认的深色主题
+   * Standard theme: Default dark theme
    */
   default: customTheme,
 
   /**
-   * 紧凑主题：适用于移动端或空间受限的场景
+   * Compact theme: Suitable for mobile devices or space-constrained scenarios
    */
   compact: {
     ...darkTheme({
-      accentColor: '#16a34a',
-      accentColorForeground: '#ffffff',
+      accentColor: '#7cff4a',
+      accentColorForeground: '#000000',
       borderRadius: 'medium',
       fontStack: 'system',
       overlayBlur: 'small',
     }),
     colors: {
       ...darkTheme({
-        accentColor: '#16a34a',
-        accentColorForeground: '#ffffff',
+        accentColor: '#7cff4a',
+        accentColorForeground: '#000000',
       }).colors,
-      // 使用与 customTheme 相同的颜色覆盖
-      connectButtonBackground: '#16a34a',
-      connectButtonInnerBackground: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)',
-      connectionIndicator: '#22c55e',
+      // Use same color overrides as customTheme
+      connectButtonBackground: '#7cff4a',
+      connectButtonInnerBackground: 'linear-gradient(90deg, #7cff4a 0%, #7cff4a 50%, #7cff4a 100%)',
+      connectionIndicator: '#7cff4a',
       modalBackground: 'rgba(10, 10, 10, 0.95)',
-      selectedOptionBorder: '#16a34a',
+      selectedOptionBorder: '#7cff4a',
     },
   } as Theme,
 
   /**
-   * 高对比度主题：增强可访问性
+   * High contrast theme: Enhanced accessibility
    */
   highContrast: {
     ...darkTheme({
-      accentColor: '#16a34a',
-      accentColorForeground: '#ffffff',
+      accentColor: '#7cff4a',
+      accentColorForeground: '#000000',
       borderRadius: 'large',
       fontStack: 'system',
       overlayBlur: 'large',
     }),
     colors: {
       ...darkTheme({
-        accentColor: '#16a34a',
-        accentColorForeground: '#ffffff',
+        accentColor: '#7cff4a',
+        accentColorForeground: '#000000',
       }).colors,
-      // 增强对比度
+      // Enhanced contrast
       modalText: '#ffffff',
       modalTextSecondary: 'rgba(255, 255, 255, 0.8)',
       generalBorder: 'rgba(255, 255, 255, 0.16)',
-      connectButtonBackground: '#16a34a',
-      connectButtonInnerBackground: 'linear-gradient(90deg, #22c55e 0%, #16a34a 50%, #22c55e 100%)',
-      connectionIndicator: '#22c55e',
-      selectedOptionBorder: '#16a34a',
+      connectButtonBackground: '#7cff4a',
+      connectButtonInnerBackground: 'linear-gradient(90deg, #7cff4a 0%, #7cff4a 50%, #7cff4a 100%)',
+      connectionIndicator: '#7cff4a',
+      selectedOptionBorder: '#7cff4a',
     },
   } as Theme,
 } as const;
 
 /**
- * 导出类型以供 TypeScript 使用
+ * Export types for TypeScript usage
  */
 export type ThemePreset = keyof typeof themePresets;
 
 /**
- * 获取指定预设的主题配置
- * @param preset - 主题预设名称（'default' | 'compact' | 'highContrast'）
- * @returns RainbowKit 主题配置
+ * Get theme configuration for specified preset
+ * @param preset - Theme preset name ('default' | 'compact' | 'highContrast')
+ * @returns RainbowKit theme configuration
  * 
  * @example
  * ```typescript
  * import { getTheme } from '@/config/rainbowkit-theme';
- * 
- * // 使用默认主题
+ *
+ * // Use default theme
  * const theme = getTheme('default');
- * 
- * // 使用紧凑主题
+ *
+ * // Use compact theme
  * const compactTheme = getTheme('compact');
  * ```
  */

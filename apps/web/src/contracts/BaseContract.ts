@@ -40,8 +40,11 @@ export abstract class BaseContract implements IContract {
 
   /**
    * Write to contract
+   * @param functionName - Contract function name
+   * @param args - Function arguments
+   * @param gasLimit - Optional gas limit (defaults to 800,000 for manual override)
    */
-  async write(functionName: string, args: unknown[] = []): Promise<string> {
+  async write(functionName: string, args: unknown[] = [], gasLimit?: bigint): Promise<string> {
     if (!this.walletClient) {
       throw new Error('Wallet client is not available');
     }
@@ -51,6 +54,9 @@ export abstract class BaseContract implements IContract {
       throw new Error('No account connected');
     }
 
+    // Default to 800,000 gas if not specified (large gas value to ensure transaction success)
+    const gas = gasLimit ?? BigInt(800000);
+
     const hash = await this.walletClient.writeContract({
       address: this.address,
       abi: this.abi,
@@ -58,6 +64,7 @@ export abstract class BaseContract implements IContract {
       args,
       account,
       chain: this.walletClient.chain ?? null,
+      gas, // Manually set gas limit
     });
 
     return hash;

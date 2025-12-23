@@ -7,7 +7,7 @@ import '@rainbow-me/rainbowkit/styles.css';
 
 import App from './App';
 import './index.css';
-import { config } from './config/wagmi';
+import { config, humanityTestnet } from './config/wagmi';
 import { customTheme } from './config/rainbowkit-theme';
 
 const queryClient = new QueryClient();
@@ -22,7 +22,10 @@ ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider theme={customTheme}>
+        <RainbowKitProvider 
+          theme={customTheme}
+          initialChain={humanityTestnet}
+        >
           <App />
         </RainbowKitProvider>
       </QueryClientProvider>

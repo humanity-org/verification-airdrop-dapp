@@ -7,13 +7,13 @@ interface StatusRowProps {
   status: 'loading' | 'success' | 'error' | 'pending';
   onVerify?: () => void;
   showVerifyButton?: boolean;
-  statusText?: string; // 自定义状态文案
+  statusText?: string; // Custom status text
 }
 
 const StatusRow: React.FC<StatusRowProps> = ({ 
   label, 
   value, 
-  status, 
+  status = 'pending', 
   onVerify, 
   showVerifyButton = false,
   statusText 
@@ -68,7 +68,7 @@ const StatusRow: React.FC<StatusRowProps> = ({
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
               status === 'loading'
                 ? 'bg-white/5 text-white/30 cursor-not-allowed'
-                : 'bg-green-500/10 hover:bg-green-500/20 text-green-400 hover:text-green-300 active:scale-95'
+                : 'bg-green-500/10 hover:bg-green-500/20 text-green-400 hover:text-green-300 active:scale-95 cursor-pointer'
             }`}
           >
             {status === 'loading' ? 'Verifying...' : 'Verify'}

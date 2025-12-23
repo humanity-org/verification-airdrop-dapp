@@ -1,7 +1,6 @@
 import type { Address, PublicClient, WalletClient } from 'viem';
 import { AirdropContract } from './AirdropContract';
 import { ERC20Contract } from './ERC20Contract';
-import { MockAirdropContract } from './mock/MockAirdropContract';
 import type { IAirdropContract, IERC20Contract } from '../types/contracts';
 
 /**
@@ -13,24 +12,12 @@ export const CONTRACT_ADDRESSES = {
 };
 
 /**
- * Check if we're in mock mode
- */
-export function isMockMode(): boolean {
-  return import.meta.env.VITE_MOCK_MODE === 'true';
-}
-
-/**
  * Create airdrop contract instance
- * Returns MockAirdropContract in mock mode, otherwise real AirdropContract
  */
 export function createAirdropContract(
   publicClient: PublicClient | null,
   walletClient: WalletClient | null,
 ): IAirdropContract {
-  if (isMockMode()) {
-    return new MockAirdropContract(CONTRACT_ADDRESSES.AIRDROP);
-  }
-
   return new AirdropContract(CONTRACT_ADDRESSES.AIRDROP, publicClient, walletClient);
 }
 

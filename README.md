@@ -11,6 +11,21 @@ A decentralized application for airdrop verification and token distribution, bui
 - 🎨 **Modern UI** - Beautiful interface built with Tailwind CSS v4
 - ⚡ **High Performance** - Built with Vite and optimized for speed
 
+## 🎬 Demo
+
+### Screenshots
+
+> **Note**: Add your project screenshots here to showcase the application
+
+- Main interface with wallet connection
+- Airdrop eligibility check flow
+- Token claiming process
+- Transaction status tracking
+
+### Live Demo
+
+> **Coming Soon**: Link to live demo will be added here
+
 ## 📁 Project Structure
 
 ```
@@ -24,6 +39,7 @@ verification-airdrop-dapp/
 │       │   ├── components/  # React components
 │       │   ├── contracts/   # Smart contract interfaces
 │       │   ├── abis/        # Contract ABIs
+│       │   ├── services/    # Business logic services
 │       │   ├── stores/      # Zustand state management
 │       │   └── config/      # Web3 configuration
 ├── docs/                     # Documentation
@@ -159,18 +175,151 @@ Main web application built with Vite, React, and Web3 technologies. Features wal
 Create a `.env` file in `apps/web/`:
 
 ```env
-# Required
-VITE_WALLET_CONNECT_PROJECT_ID=your_project_id
+# Required - WalletConnect Project ID
+# Get yours at https://cloud.walletconnect.com/
+VITE_WALLETCONNECT_PROJECT_ID=your_project_id_here
 
-# Optional
-VITE_CHAIN_ID=1  # Mainnet by default
+# Optional - Network Configuration
+VITE_CHAIN_ID=4689
+VITE_RPC_URL=https://babel-api.mainnet.iotex.io
+
+# Optional - Contract Addresses (if using custom contracts)
+VITE_AIRDROP_CONTRACT_ADDRESS=0x...
+VITE_TOKEN_CONTRACT_ADDRESS=0x...
+
+# Optional - Application Configuration
+VITE_APP_NAME="Verification Airdrop dApp"
+VITE_APP_DESCRIPTION="Claim your tokens"
 ```
+
+**How to get WalletConnect Project ID:**
+1. Visit [WalletConnect Cloud](https://cloud.walletconnect.com/)
+2. Sign up or log in
+3. Create a new project
+4. Copy the Project ID
 
 ### Supported Networks
 
-- Ethereum Mainnet
-- Sepolia Testnet
-- (Add more as needed)
+- **HP Test Network** (Chain ID: 4689)
+- **IoTeX Mainnet** (Chain ID: 4689)
+- Easily add more networks by configuring in `apps/web/src/config/wagmi.ts`
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/verification-airdrop-dapp)
+
+1. Push your code to GitHub
+2. Import project in [Vercel](https://vercel.com/)
+3. Configure environment variables (see Configuration section)
+4. Deploy!
+
+Vercel will automatically detect the Vite configuration and set up the build process.
+
+### Netlify
+
+```bash
+# Build the project
+bun run build
+
+# The dist folder will be in apps/web/dist
+# Deploy this folder to Netlify
+```
+
+In Netlify dashboard:
+1. Set build command: `bun run build`
+2. Set publish directory: `apps/web/dist`
+3. Add environment variables
+
+### Docker (Self-Hosting)
+
+```dockerfile
+FROM oven/bun:1 as builder
+WORKDIR /app
+COPY . .
+RUN bun install
+RUN bun run build
+
+FROM nginx:alpine
+COPY --from=builder /app/apps/web/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
+```
+
+Build and run:
+```bash
+docker build -t verification-airdrop-dapp .
+docker run -p 80:80 verification-airdrop-dapp
+```
+
+### Static Hosting
+
+After building (`bun run build`), you can deploy the `apps/web/dist` folder to any static hosting service:
+- GitHub Pages
+- Cloudflare Pages
+- AWS S3 + CloudFront
+- Any static file server
+
+## ❓ FAQ
+
+### General Questions
+
+**Q: What wallets are supported?**  
+A: We support all wallets compatible with WalletConnect v2, including:
+- MetaMask
+- Trust Wallet
+- Coinbase Wallet
+- Rainbow Wallet
+- And many more through WalletConnect
+
+**Q: Which blockchain networks are supported?**  
+A: Currently supporting IoTeX Mainnet (Chain ID: 4689). More networks can be easily added through configuration.
+
+**Q: How do I add a custom token to the airdrop?**  
+A: You need to deploy your own airdrop contract and update the contract address in the environment variables. See the contracts configuration in `apps/web/src/config/wagmi.ts`.
+
+**Q: What are the gas fees for claiming?**  
+A: Gas fees vary by network and current network congestion. Estimated fees are shown before transaction confirmation in your wallet.
+
+**Q: Is this project production-ready?**  
+A: This is a development template. Please conduct thorough testing and security audits before deploying to production with real assets.
+
+### Technical Questions
+
+**Q: Can I use this with other EVM-compatible chains?**  
+A: Yes! Simply add your chain configuration in `apps/web/src/config/wagmi.ts` and update the environment variables.
+
+**Q: How do I customize the UI theme?**  
+A: The project uses Tailwind CSS v4. Customize colors and themes in `apps/web/src/index.css` using the `@theme` directive.
+
+**Q: Can I add more state management stores?**  
+A: Yes, create new Zustand stores in `apps/web/src/stores/` following the pattern in existing store files.
+
+### Troubleshooting
+
+**Issue: Wallet won't connect**
+- Ensure you're on the correct network
+- Check if your wallet extension is updated to the latest version
+- Try refreshing the page
+- Clear browser cache and try again
+
+**Issue: Transaction failed**
+- Verify you have enough native tokens for gas fees
+- Check if you're eligible for the airdrop
+- Ensure you're on the correct network
+- Try increasing the gas limit in your wallet
+
+**Issue: Build fails**
+- Run `bun install` to ensure all dependencies are installed
+- Clear build cache with `bun run clean`
+- Check Node/Bun version compatibility
+- Ensure all TypeScript errors are resolved with `bun run type-check`
+
+**Issue: Environment variables not working**
+- Ensure your `.env` file is in the `apps/web/` directory
+- Restart the dev server after changing environment variables
+- Remember to prefix variables with `VITE_` for them to be available in the client
 
 ## 🔗 Useful Links
 
@@ -190,11 +339,64 @@ VITE_CHAIN_ID=1  # Mainnet by default
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+We welcome contributions from the community! Please follow these guidelines:
+
+### Development Process
+
+1. **Fork the repository** and clone it locally
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** following our code standards (see [CLAUDE.md](./CLAUDE.md))
+4. **Write or update tests** if applicable
+5. **Run quality checks**:
+   ```bash
+   bun run lint          # Check code style
+   bun run type-check    # Check TypeScript types
+   bun run build         # Ensure project builds
+   bun run test          # Run tests (if available)
+   ```
+6. **Commit your changes** using [Conventional Commits](https://www.conventionalcommits.org/):
+   - `feat:` New feature
+   - `fix:` Bug fix
+   - `docs:` Documentation changes
+   - `style:` Code style changes (formatting, etc.)
+   - `refactor:` Code refactoring
+   - `test:` Adding or updating tests
+   - `chore:` Build process or tooling changes
+   
+   Example: `git commit -m 'feat: add batch claiming feature'`
+
+7. **Push to your fork**: `git push origin feature/amazing-feature`
+8. **Open a Pull Request** with a clear description of your changes
+
+### Code Standards
+
+- **TypeScript**: Use strict mode, avoid `any` types
+- **React**: Functional components only, keep components under 200 lines
+- **State Management**: Use Zustand for app state, never React Context
+- **Web3**: Always handle transaction errors and provide user feedback
+- **Styling**: Use Tailwind CSS v4, follow the design system
+- **Code Style**: Enforced by ESLint and Prettier
+
+### Pull Request Guidelines
+
+- Provide a clear description of what your PR does
+- Reference any related issues
+- Include screenshots for UI changes
+- Ensure all checks pass
+- Keep PRs focused and atomic
+
+### Reporting Issues
+
+When reporting issues, please include:
+- Clear description of the problem
+- Steps to reproduce
+- Expected vs actual behavior
+- Environment details (browser, wallet, network)
+- Console errors (if any)
+
+### Questions?
+
+Feel free to open an issue for questions or join our community discussions.
 
 ## 📄 License
 

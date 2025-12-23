@@ -1,10 +1,41 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { CheckCircle2, XCircle, Info, ExternalLink, X } from 'lucide-react';
-import { useAirdropStore } from '../stores/airdropStore';
+import { useToastStore } from '../stores/toastStore';
 
 const Toast: React.FC = () => {
-  const toasts = useAirdropStore((state) => state.toasts);
-  const removeToast = useAirdropStore((state) => state.removeToast);
+  const toasts = useToastStore((state) => state.toasts);
+  const removeToast = useToastStore((state) => state.removeToast);
+
+  // Feature 3: Detect user's motion preference
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(() =>
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  );
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const handleChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+
+  // Feature 2: Keyboard navigation - Escape key to close the most recent toast
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && toasts.length > 0) {
+        // Close the most recent toast (last item in array)
+        const lastToast = toasts[toasts.length - 1];
+        if (lastToast) {
+          removeToast(lastToast.id);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [toasts, removeToast]);
 
   const getIcon = (type: 'success' | 'error' | 'info') => {
     switch (type) {
@@ -35,7 +66,14 @@ const Toast: React.FC = () => {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-md">
+    <div
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-relevant="additions text"
+      aria-atomic="false"
+      className="fixed top-4 right-4 z-[9999] flex flex-col gap-3 max-w-md"
+    >
       {toasts.map((toast) => (
         <ToastItem
           key={toast.id}
@@ -44,6 +82,7 @@ const Toast: React.FC = () => {
           getIcon={getIcon}
           getStyles={getStyles}
           getScanUrl={getScanUrl}
+          prefersReducedMotion={prefersReducedMotion}
         />
       ))}
     </div>
@@ -61,9 +100,17 @@ interface ToastItemProps {
   getIcon: (type: 'success' | 'error' | 'info') => React.ReactNode;
   getStyles: (type: 'success' | 'error' | 'info') => string;
   getScanUrl: (txHash: string) => string;
+  prefersReducedMotion: boolean;
 }
 
-const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose, getIcon, getStyles, getScanUrl }) => {
+const ToastItem: React.FC<ToastItemProps> = ({
+  toast,
+  onClose,
+  getIcon,
+  getStyles,
+  getScanUrl,
+  prefersReducedMotion,
+}) => {
   const [isVisible, setIsVisible] = React.useState(false);
 
   useEffect(() => {
@@ -75,14 +122,32 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose, getIcon, getStyle
 
   const handleClose = () => {
     setIsVisible(false);
-    setTimeout(onClose, 300); // Wait for animation
+    // Feature 3: Reduce animation delay for reduced motion
+    setTimeout(onClose, prefersReducedMotion ? 100 : 300);
   };
+
+  // Feature 3: Conditional animation classes based on motion preference
+  const animationClass = prefersReducedMotion
+    ? // Reduced motion: simple opacity transition
+      isVisible
+      ? 'opacity-100'
+      : 'opacity-0'
+    : // Normal motion: slide + opacity
+      isVisible
+      ? 'translate-x-0 opacity-100'
+      : 'translate-x-full opacity-0';
+
+  const transitionClass = prefersReducedMotion
+    ? 'transition-opacity duration-150'
+    : 'transition-all duration-300';
 
   return (
     <div
-      className={`glass rounded-2xl border p-4 shadow-2xl transform transition-all duration-300 ${
-        isVisible ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-      } ${getStyles(toast.type)}`}
+      role={toast.type === 'error' ? 'alert' : 'status'}
+      aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
+      className={`glass rounded-2xl border p-4 shadow-2xl transform ${transitionClass} ${animationClass} ${getStyles(
+        toast.type
+      )}`}
     >
       <div className="flex items-start gap-3">
         <div className="flex-shrink-0 mt-0.5">{getIcon(toast.type)}</div>
@@ -95,7 +160,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose, getIcon, getStyle
               href={getScanUrl(toast.txHash)}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-2 inline-flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 transition-colors group"
+              className="mt-2 inline-flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 transition-colors group cursor-pointer"
             >
               <span>View on Explorer</span>
               <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
@@ -105,7 +170,7 @@ const ToastItem: React.FC<ToastItemProps> = ({ toast, onClose, getIcon, getStyle
 
         <button
           onClick={handleClose}
-          className="flex-shrink-0 p-1 rounded-lg hover:bg-white/10 transition-colors"
+          className="flex-shrink-0 p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
           aria-label="Close notification"
         >
           <X className="w-4 h-4 text-white/40 hover:text-white/60" />

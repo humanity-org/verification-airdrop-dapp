@@ -54,6 +54,15 @@ export default defineConfig({
 
   // Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'zustand'],
+    include: [
+      'react',
+      'react-dom',
+      'zustand',
+      '@tanstack/react-query',
+      'wagmi',
+      'viem',
+      '@rainbow-me/rainbowkit',
+      '@metamask/sdk',
+    ],
   },
 });
