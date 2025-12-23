@@ -219,10 +219,11 @@ export const ERROR_MESSAGES: Record<ErrorCode, {
  * Error Code to Category Mapping
  */
 export function getErrorCategory(code: ErrorCode): ErrorCategory {
-  if (code >= 1000 && code < 2000) return ErrorCategory.NETWORK;
-  if (code >= 2000 && code < 3000) return ErrorCategory.WALLET;
-  if (code >= 3000 && code < 4000) return ErrorCategory.CONTRACT;
-  if (code >= 4000 && code < 5000) return ErrorCategory.BUSINESS;
-  if (code >= 5000 && code < 6000) return ErrorCategory.VALIDATION;
+  const numCode = Number(code);
+  if (numCode >= 1000 && numCode < 2000) return ErrorCategory.NETWORK;
+  if (numCode >= 2000 && numCode < 3000) return ErrorCategory.WALLET;
+  if (numCode >= 3000 && numCode < 4000) return ErrorCategory.CONTRACT;
+  if (numCode >= 4000 && numCode < 5000) return ErrorCategory.BUSINESS;
+  if (numCode >= 5000 && numCode < 6000) return ErrorCategory.VALIDATION;
   return ErrorCategory.UNKNOWN;
 }

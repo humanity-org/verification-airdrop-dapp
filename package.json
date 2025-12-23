@@ -15,7 +15,9 @@
     "lint": "turbo run lint",
     "format": "turbo run format",
     "type-check": "turbo run type-check",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "predeploy": "turbo run type-check lint build",
+    "preview": "turbo run build && cd apps/web && bun run preview"
   },
   "devDependencies": {
     "@types/bun": "latest",

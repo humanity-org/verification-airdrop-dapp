@@ -184,11 +184,6 @@ export class AirdropService {
         maxAge,
         airdropAddress
       );
-      console.log(  this.address,
-        airdropAddress,
-        requiredClaims,
-        maxAge,
-        airdropAddress)
 
       // 4. Use wallet to sign the message
       if (!this.walletClient) {
@@ -209,17 +204,10 @@ export class AirdropService {
         );
       }
 
-      console.log('=== Signature Debug Info ===');
-      console.log('User Address:', this.address);
-      console.log('Wallet Account:', this.walletClient.account.address);
-      console.log('Message Hash:', messageHash);
-
       const signature = await this.walletClient.signMessage({
         message: { raw: messageHash },
         account: this.address,
       });
-
-      console.log('Signature:', signature);
 
       // 🔴 Post-signature verification: Ensure signature can recover the correct address
       try {
@@ -227,10 +215,6 @@ export class AirdropService {
           message: { raw: messageHash },
           signature,
         });
-
-        console.log('Recovered Address:', recoveredAddress);
-        console.log('Expected Address:', this.address);
-        console.log('Match:', recoveredAddress.toLowerCase() === this.address.toLowerCase());
 
         if (recoveredAddress.toLowerCase() !== this.address.toLowerCase()) {
           throw new Error(
@@ -246,8 +230,6 @@ export class AirdropService {
             `Please contact the development team to verify the contract's signature format.`
           );
         }
-
-        console.log('✅ Signature verification passed!');
       } catch (error) {
         if (error instanceof Error && error.message.includes('Signature verification failed')) {
           throw error; // Re-throw our custom error
@@ -375,7 +357,6 @@ export class AirdropService {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
         const status = await this.airdropContract.getVerificationStatus(this.address);
-        console.log('status', status)
         // If status is not Pending, return result
         if (status !== VerificationStatus.Pending) {
           return status;
