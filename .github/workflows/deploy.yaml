@@ -20,14 +20,7 @@ jobs:
     steps:
       - name: Trigger Vercel Deploy Hook
         run: |
-          curl -X POST "${{ vars.VERCEL_DEPLOY_HOOK_URL }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "ref": "${{ github.ref }}",
-              "sha": "${{ github.sha }}",
-              "author": "${{ github.actor }}",
-              "message": "${{ github.event.head_commit.message || github.event.pull_request.title }}"
-            }'
+          curl  ${{ vars.VERCEL_DEPLOY_HOOK_URL }}
 
       - name: Deployment Status
         run: |
