@@ -16,6 +16,13 @@ export default defineConfig({
         plugins: [],
       },
     }),
+{
+      name: 'remove-dot-from-assets',
+      transformIndexHtml(html) {
+        // Replace ./assets/ with assets/ and ./favicon.ico with favicon.ico
+        return html.replace(/\.\/assets\//g, 'assets/').replace(/\.\/favicon\.ico/g, 'favicon.ico');
+      }
+    }
   ],
 
   // Path aliases
@@ -49,6 +56,9 @@ export default defineConfig({
           'react-vendor': ['react', 'react-dom'],
           'zustand-vendor': ['zustand'],
         },
+        assetFileNames: 'assets/[name]-[hash][extname]',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
       },
     },
   },
